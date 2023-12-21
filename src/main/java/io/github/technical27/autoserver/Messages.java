@@ -5,7 +5,6 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
 
 public class Messages {
-
         private static final Component SWITCH_INSTRUCTIONS = Component
                         .text("If you know the modpack server you want to join is still up,")
                         .color(NamedTextColor.RED)
@@ -47,6 +46,6 @@ public class Messages {
                         .append(SWITCH_INSTRUCTIONS);
 
         public static final Title CONNECTING_TITLE = Title.title(
-                        Component.text("Connecting....").color(NamedTextColor.GOLD),
-                        Component.text("just wait a bit").color(NamedTextColor.GOLD));
+                        Component.text("Connecting").color(NamedTextColor.GOLD),
+                        Component.text("Please wait").color(NamedTextColor.GOLD));
 }

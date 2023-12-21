@@ -7,10 +7,9 @@ import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import com.velocitypowered.api.util.ModInfo;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ExecutionException;
 
@@ -19,7 +18,7 @@ import org.slf4j.Logger;
 public class Listener {
     private final Logger logger;
 
-    private final HashMap<RegisteredServer, List<ModInfo.Mod>> infos;
+    private final ArrayList<ServerInfo> infos;
     private final RegisteredServer lobbyServer;
 
     public Listener(Logger logger, Collection<RegisteredServer> servers, Config cfg) {
@@ -27,16 +26,15 @@ public class Listener {
 
         this.lobbyServer = findServer(servers, cfg.getLobby());
 
-        this.infos = new HashMap<RegisteredServer, List<ModInfo.Mod>>();
-        HashMap<String, List<ModInfo.Mod>> serverInfo = cfg.getServerInfo();
+        this.infos = new ArrayList<ServerInfo>();
 
-        for (Map.Entry<String, List<ModInfo.Mod>> e : serverInfo.entrySet()) {
-            RegisteredServer server = findServer(servers, e.getKey());
+        for (Config.ServerInfo info : cfg.getServerInfo()) {
+            RegisteredServer server = findServer(servers, info.getName());
             if (server == null) {
-                logger.warn("Can't find the registered server " + e.getKey() + ", this is not going to work.");
+                logger.warn("Can't find the registered server " + info.getName() + ", this is not going to work.");
                 continue;
             }
-            this.infos.put(server, e.getValue());
+            this.infos.add(new ServerInfo(server, info.getRequiredMods()));
         }
     }
 
@@ -63,7 +61,7 @@ public class Listener {
                     + server.getServerInfo().getName());
             player.sendMessage(Messages.CONNECTION_FAIL);
         } catch (Exception e) {
-            logger.warn("caught exception in connectPlayer");
+            logger.error("caught exception in connectPlayer");
             e.printStackTrace();
         } finally {
             player.clearTitle();
@@ -104,10 +102,10 @@ public class Listener {
         player.showTitle(Messages.CONNECTING_TITLE);
 
         return EventTask.async(() -> {
-            for (Map.Entry<RegisteredServer, List<ModInfo.Mod>> entry : infos.entrySet()) {
-                List<ModInfo.Mod> requiredMods = entry.getValue();
+            for (ServerInfo info : infos) {
+                List<ModInfo.Mod> requiredMods = info.getRequiredMods();
                 if (mods.containsAll(requiredMods)) {
-                    connectPlayer(player, entry.getKey());
+                    connectPlayer(player, info.getServer());
                     return;
                 }
             }

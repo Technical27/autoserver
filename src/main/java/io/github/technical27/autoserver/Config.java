@@ -8,7 +8,7 @@ import java.util.List;
 
 import org.slf4j.Logger;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -18,11 +18,29 @@ import com.moandjiezana.toml.Toml;
 
 public class Config {
     private String lobby;
-    private HashMap<String, List<ModInfo.Mod>> serverInfo;
+    private ArrayList<ServerInfo> serverInfo;
+
+    public static class ServerInfo {
+        private final String name;
+        private final List<ModInfo.Mod> requiredMods;
+
+        public ServerInfo(String name, List<ModInfo.Mod> requiredMods) {
+            this.name = name;
+            this.requiredMods = requiredMods;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public List<ModInfo.Mod> getRequiredMods() {
+            return requiredMods;
+        }
+    }
 
     private static final String DEFAULT_CONFIG = "# autoserver config\n\n# Name of the base server everyone can connect to.\n# This is the first server anyone will connect to before being\n# redirected to the correct modpack/server and is required to be set.\nlobby_name = \"lobby\"\n\n# example server config\n# this redirects anybody with appliedenergistics2 with version rv6-stable-7 to the\n# server 'modpack1' as defined in the velocity config.\n# [servers.modpack1]\n# required = [ \"appliedenergistics2@rv6-stable-7\" ]\n";
 
-    public Config(String lobby, HashMap<String, List<ModInfo.Mod>> serverInfo) {
+    public Config(String lobby, ArrayList<ServerInfo> serverInfo) {
         this.lobby = lobby;
         this.serverInfo = serverInfo;
     }
@@ -55,7 +73,7 @@ public class Config {
             return null;
         }
 
-        HashMap<String, List<ModInfo.Mod>> serverInfo = new HashMap<String, List<ModInfo.Mod>>();
+        ArrayList<ServerInfo> serverInfo = new ArrayList<ServerInfo>();
         Toml servers = toml.getTable("servers");
 
         if (servers == null) {
@@ -91,7 +109,7 @@ public class Config {
                 return m != null;
             }).collect(Collectors.toList());
 
-            serverInfo.put(name, modinfo);
+            serverInfo.add(new ServerInfo(name, modinfo));
         }
 
         return new Config(lobby, serverInfo);
@@ -101,7 +119,7 @@ public class Config {
         return lobby;
     }
 
-    public HashMap<String, List<ModInfo.Mod>> getServerInfo() {
+    public ArrayList<ServerInfo> getServerInfo() {
         return serverInfo;
     }
 }
